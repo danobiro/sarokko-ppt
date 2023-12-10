@@ -15,8 +15,9 @@ from io import BytesIO
 
 import os
 import copy
-
 import requests
+
+from time import sleep
 
 # Decorator to fix bg and text colors
 def copy_slide(copyFromPres, slideIndex,  pasteIntoPres):
@@ -27,7 +28,6 @@ def copy_slide(copyFromPres, slideIndex,  pasteIntoPres):
 
 # Code from https://stackoverflow.com/a/73954830, made by Josip Pardon
 # Improved with jimmiesrustled's answer
-
 def SlideCopyFromPasteInto(copyFromPres, slideIndex,  pasteIntoPres):
 
     # specify the slide you want to copy the contents from
@@ -201,6 +201,16 @@ class VersPlaceTextBox(VersTextBox):
         self.make_bold()
         self.set_alignment('right')
         self.set_text(vers_place)
+
+    def set_text(self,vers_place):
+        #TODO: there can be various user inputs, they have to be handled somewhere. This is just wishful thinking that it will be an input like this
+        parts = vers_place.split(" ")
+        book = parts[0]
+        text = BibleBooks.BOOKS_DICT[book] + " "
+        for i in range(1,len(parts)):
+            text += parts[i] + " "
+        
+        super().set_text(text)
         
 class VersContentTextBox(VersTextBox):
     font_size = 32
@@ -333,10 +343,50 @@ class BibleVersSlide(BlankSlide):
 
         self.vers_cont_box = VersContentTextBox(self.slide,left,top,width,height,vers_cont,prs)
 
+def get_bible_books():
+    # Get the names into a dict, so we can use it on the ppts
+    response = requests.get("https://szentiras.hu/api/books/RÚF")
+    # Don't request too frequently from the API!
+    sleep(0.5)
+
+    if not response:
+        print("Error: couldn't get Bible books")
+        quit()
+
+    books = response.json()['books']
+    bible_books = {}
+
+    for book in books:
+        bible_books[book['abbrev']] = book['name']
+
+    return bible_books
+
+# Could be placed in a different module to make it similar to a Singleton, to prevent it from re-fetching the list
+class BibleBooks:
+    BOOKS_DICT = {}
+
+    def __init__(self):
+        if os.path.isfile("./resources/Bible-books.txt"):
+            with open("./resources/Bible-books.txt", 'r', encoding='utf-8') as f:
+                for lines in f.readlines():
+                    item = lines.split(":")
+                    BibleBooks.BOOKS_DICT[item[0].strip()] = item[1].strip()
+        else:
+            print("Downloading Bible book names")
+            BibleBooks.BOOKS_DICT = get_bible_books()
+            self.save("Bible-books.txt")
+
+    def save(self,filename):
+        # Make sure to include encoding or it won't work!
+        with open(f"./resources/{filename}", 'w', encoding='utf-8') as f:
+            for key, value in BibleBooks.BOOKS_DICT.items():
+                f.write(f"{key} : {value}\n")
 
 def create_bible_vers_slides(prs,vers_place):
     #TODO: request vers by vers so we can add vers numbers in the text
     response = requests.get(f"https://szentiras.hu/api/ref/{vers_place}/RÚF")
+    # Don't request too frequently from the API!
+    sleep(0.2)
     
     if not response:
         print("Error: couldn't get Bible verses")
@@ -386,6 +436,10 @@ if __name__ == "__main__":
     pdfmetrics.registerFontFamily('Calibri',normal='Calibri',bold='CalibriBd',italic='CalibriIt',boldItalic='CalibriBI')
 
     rl_config.TTFSearchPath.remove('./resources/calibri-font-family')
+
+    # Init
+    #BibleBooks().save("Bible-books.txt")
+    BibleBooks()
 
     ####
     # Load old presentation
