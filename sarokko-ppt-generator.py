@@ -256,8 +256,7 @@ class VersContentTextBox(VersTextBox):
                 
                 # To debug scaling
                 #print()
-
-                #create_bible_vers_slide(prs,vers_place)
+                
                 break
                 
             vers_text_width = get_text_width(vers_text, vers_font_size, 'CalibriBd')
@@ -312,10 +311,6 @@ class BibleVersSlide(BlankSlide):
         self.fill_bg_solid(0,0,0)
 
         # Get vers place textbox
-        #top = OFFSET
-        #height = Inches(1)
-        #width = slide_w - left
-
         left = OFFSET
         top = Cm(0.45)
         height = Cm(1.6)
@@ -359,14 +354,10 @@ def create_bible_vers_slides(prs,vers_place):
 def add_song_slides(prs,song_list):
     for song in song_list:
         fname = song + '.pptx'
-        #song_prs = Presentation(f"./resources/songs/{fname}")
-        song_prs = Presentation("resources/songs/Teremtsd bennem tiszta szívet.pptx")
+        song_prs = Presentation(f"./resources/songs/{fname}")
 
         for i in range(len(song_prs.slides)):
             copy_slide(song_prs, i,  prs)
-            #slide = Slide(SlideCopyFromPasteInto(song_prs, i,  prs))
-            #Set black background, as bg color is not copied
-            #slide.fill_bg_solid(0,0,0)
             
 
 if __name__ == "__main__":
@@ -409,7 +400,7 @@ if __name__ == "__main__":
     #prs.slide_width = old_prs.slide_width
     #prs.slide_height = old_prs.slide_height
 
-    ## Building the new slide
+    ## Building the new presentation
 
     # Create an empty slide for the welcome slide
     BlankSlide(prs).fill_bg_solid(0,0,0)
@@ -449,9 +440,8 @@ if __name__ == "__main__":
         add_song_slides(prs,post_song_list)
 
     # Copy ad slides
-
     for i in range(ad_start_ind-1, len(old_prs.slides)):
-        # Add give them black bg
+        # And them black bg
         copy_slide(old_prs, i,  prs)
 
     # Save file
