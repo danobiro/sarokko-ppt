@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "C:\Users\Dano\anaconda3\lib\site-packages\requests\models.py", line 971, in json
+    return complexjson.loads(self.text, **kwargs)
+  File "C:\Users\Dano\anaconda3\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\Dano\anaconda3\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\Dano\anaconda3\lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+
+Traceback (most recent call last):
+  File "K:\Workspace\python\sarokko-ppt\sarokko-ppt-generator.py", line 599, in <module>
+    create_bible_vers_slides(prs,vers_place)
+  File "K:\Workspace\python\sarokko-ppt\sarokko-ppt-generator.py", line 505, in create_bible_vers_slides
+    vers_text = get_vers_content(vers_place)
+  File "K:\Workspace\python\sarokko-ppt\sarokko-ppt-generator.py", line 488, in get_vers_content
+    resp_text = response.json()['text']
+  File "C:\Users\Dano\anaconda3\lib\site-packages\requests\models.py", line 975, in json
+    raise RequestsJSONDecodeError(e.msg, e.doc, e.pos)
+requests.exceptions.JSONDecodeError: Expecting value: line 1 column 1 (char 0)

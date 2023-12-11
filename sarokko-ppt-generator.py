@@ -20,10 +20,11 @@ import requests
 from time import sleep
 
 """TODO list:
-* Now superscript works, but text length calculation isn't accurate enough
 * Handle various forms of the input of Bible vers locations
 * After that, do pretty formatting
 * Make a simple GUI interface
+* Handle the API request error
+* Find out the ratio between normal and superscript numbers
 """
 
 # Decorator to fix bg and text colors
@@ -113,11 +114,28 @@ def get_text_width(text, font_size, font_name='Calibri'):
 def get_next_stop(vers_text,font_size,font_type,max_width):
     words_len = 0
     words_list = vers_text.split(" ")
-    curr_words = words_list[0]
-    stop_ind = len(curr_words)
+    #curr_words = words_list[0]
+    curr_words = ""
+    #stop_ind = len(curr_words)
+    # We will never quit after the first word, so this is fine
+    stop_ind = len(words_list[0])
+
+    delimiter_count = 0
+
+    c = 0
+
+    #delimiter_width = get_text_width('@',font_size,font_type)
     
-    for word in words_list[1:]:
-        curr_words += " " + word
+    for word in words_list:
+        # Remove delimitters for the measurement
+        delimiter_count += word.count('@')
+        new_word = word.replace('@',"")
+        # Don't append space before the first word
+        if c > 0:
+            curr_words += " " + new_word
+        else:
+            curr_words += new_word
+            c += 1
         words_len = get_text_width(curr_words,font_size,font_type)
         #print(words_len,max_width,stop_ind,curr_words)
         #print(words_len/914400)
@@ -125,7 +143,8 @@ def get_next_stop(vers_text,font_size,font_type,max_width):
         if words_len > max_width:
             return stop_ind
         else:
-            stop_ind = len(curr_words)
+            # Add them back as they are still part of the full string
+            stop_ind = len(curr_words) + delimiter_count
         
     return stop_ind
 
@@ -277,7 +296,6 @@ class VersContentTextBox(VersTextBox):
                     self.run.text += part[1:]
 
 
-
     def add_text_superscript(self,text):
         pass
         
@@ -295,7 +313,6 @@ class VersContentTextBox(VersTextBox):
         while(vers_text_width > width):
             # TODO: this line is dirty
             stop_ind = get_next_stop(vers_text,vers_font_size,'CalibriBd', width / BibleVersSlide.SCALING_FACTOR)
-
             self.add_text(vers_text[:stop_ind] + '\n')
             #self.run.text += vers_text[:stop_ind] + '\n'
 
