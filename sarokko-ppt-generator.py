@@ -126,17 +126,29 @@ def get_next_stop(vers_text,font_size,font_type,max_width):
 
     #delimiter_width = get_text_width('@',font_size,font_type)
     
+    # superscript ratio - adjust it for better results
+    ss_ratio = 0.5
+    
     for word in words_list:
         # Remove delimitters for the measurement
-        delimiter_count += word.count('@')
-        new_word = word.replace('@',"")
+        curr_del_c = word.count('@')
+        delimiter_count += curr_del_c
+
+        # make corrections for the numbers that will be made superscripts
+        correction = 0
+        new_word = word
+        for j in range(curr_del_c):
+            num = new_word.split('@')[1][0]
+            correction += (1-ss_ratio) * get_text_width(num,font_size,font_type)
+            new_word = new_word.replace('@',"",1)
+
         # Don't append space before the first word
         if c > 0:
             curr_words += " " + new_word
         else:
             curr_words += new_word
             c += 1
-        words_len = get_text_width(curr_words,font_size,font_type)
+        words_len = get_text_width(curr_words,font_size,font_type) - correction
         #print(words_len,max_width,stop_ind,curr_words)
         #print(words_len/914400)
         
@@ -378,7 +390,7 @@ class BlankSlide(Slide):
 
 class BibleVersSlide(BlankSlide):
     # This is a constant after the value is determined
-    SCALING_FACTOR = 1.
+    SCALING_FACTOR = 0.98
 
     def __init__(self,prs,vers_place,vers_cont):
         super().__init__(prs)
@@ -486,7 +498,13 @@ def get_vers_content(vers_place):
         
             sleep(0.5)
 
-        resp_text = response.json()['text']
+            # Handle an exception that sometimes arises
+            if success == True:
+                try:
+                    resp_text = response.json()['text']
+                except:
+                    print("An exception happened. Retrying...")
+                    success = False
 
         #for i in range(len(vers_cont)):
         #    if i != 0:
