@@ -20,7 +20,7 @@ import requests
 from time import sleep
 
 """TODO list:
-* Vers by vers requesting and add vers number in the text - Done: now the number has to be made a superscript...
+* Now superscript works, but text length calculation isn't accurate enough
 * Handle various forms of the input of Bible vers locations
 * After that, do pretty formatting
 * Make a simple GUI interface
@@ -235,9 +235,15 @@ class VersContentTextBox(VersTextBox):
 
     def __init__(self,slide,left,top,width,height,vers_cont,prs):
         super().__init__(slide,left,top,width,height)
+        self.set_run_properties()
+
+        self.max_lines = 4
+
+        self.set_multiline_text(vers_cont,prs)
+
+    def set_run_properties(self):
         self.set_font_size(VersContentTextBox.font_size)
         self.set_alignment('left')
-
         # Write text content
         # Safety measure, shouldn't be needed if scaling is right
         self.tf.word_wrap = True
@@ -245,10 +251,36 @@ class VersContentTextBox(VersTextBox):
         self.tf.vertical_anchor = MSO_ANCHOR.TOP
         # You can't have more than 4 lines on the slide
         #TODO: change this to 4 and a quarter
-        self.max_lines = 4
 
-        self.set_multiline_text(vers_cont,prs)
+    def add_text(self,text):
+        if '@' not in text:
+            self.run.text += text
+        else:
+            parts = text.split('@')
 
+            for i,part in enumerate(parts):
+                # The first part doesn't contain a number
+                if i == 0:
+                    self.run.text += part
+                else:
+                    # Create a new run for superscript text
+                    self.run = self.p.add_run()
+                    self.set_run_properties()
+                    font = self.run.font
+                    set_superscript(font)
+                    # first element is the number
+                    self.run.text += part[0]
+
+                    # Return to normal state and add the rest
+                    self.run = self.p.add_run()
+                    self.set_run_properties()
+                    self.run.text += part[1:]
+
+
+
+    def add_text_superscript(self,text):
+        pass
+        
     def set_multiline_text(self,vers_text,prs):
         num_lines = 0
         
@@ -263,7 +295,10 @@ class VersContentTextBox(VersTextBox):
         while(vers_text_width > width):
             # TODO: this line is dirty
             stop_ind = get_next_stop(vers_text,vers_font_size,'CalibriBd', width / BibleVersSlide.SCALING_FACTOR)
-            self.run.text += vers_text[:stop_ind] + '\n'
+
+            self.add_text(vers_text[:stop_ind] + '\n')
+            #self.run.text += vers_text[:stop_ind] + '\n'
+
             # Drop spaces
             vers_text = vers_text[stop_ind+1:]
             
@@ -443,7 +478,8 @@ def get_vers_content(vers_place):
 
         #vers_cont.append(resp_text)
         if i != section_start:
-            vers_text += str(i)
+            # Use @ as delimitter as that never happens in the text
+            vers_text += '@' + str(i)
         vers_text += resp_text
 
     return vers_text
