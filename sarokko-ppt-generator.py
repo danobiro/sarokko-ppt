@@ -257,7 +257,9 @@ class VersPlaceTextBox(VersTextBox):
         book = parts[0]
         text = BibleBooks.BOOKS_DICT[book] + " "
         for i in range(1,len(parts)):
-            text += parts[i] + " "
+            # Convention of how vers places are denoted
+            p = parts[i].replace(',',':')
+            text += p + " "
         
         super().set_text(text)
         
