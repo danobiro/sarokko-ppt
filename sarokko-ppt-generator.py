@@ -428,6 +428,10 @@ class BibleVersSlide(BlankSlide):
 
         self.vers_cont_box = VersContentTextBox(self.slide,left,top,width,height,vers_cont,prs)
 
+    # static method
+    def set_scaling_factor(factor):
+        BibleVersSlide.SCALING_FACTOR = factor
+
 def get_bible_books():
     # Get the names into a dict, so we can use it on the ppts
     response = requests.get("https://szentiras.hu/api/books/RÚF")
@@ -563,6 +567,10 @@ if __name__ == "__main__":
     old_slide_name = "pelda.pptx"
     # Index of slide at which ads start in last slide
     ad_start_ind = 95
+
+    # Advanced user input
+    scaling_factor = 0.98
+    BibleVersSlide.set_scaling_factor(scaling_factor)
 
 
     # Load Calibri font
