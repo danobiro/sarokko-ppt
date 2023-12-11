@@ -19,6 +19,13 @@ import requests
 
 from time import sleep
 
+"""TODO list:
+* Vers by vers requesting and add vers number in the text - Done: now the number has to be made a superscript...
+* Handle various forms of the input of Bible vers locations
+* After that, do pretty formatting
+* Make a simple GUI interface
+"""
+
 # Decorator to fix bg and text colors
 def copy_slide(copyFromPres, slideIndex,  pasteIntoPres):
     slide = Slide(SlideCopyFromPasteInto(copyFromPres, slideIndex,  pasteIntoPres))
@@ -77,6 +84,17 @@ def SlideCopyFromPasteInto(copyFromPres, slideIndex,  pasteIntoPres):
         os.remove(k)
 
     return new_slide # this returns slide so you can instantly work with it when it is pasted in presentation
+
+# Code from https://stackoverflow.com/a/61922454
+def set_subscript(font):
+    font._element.set('baseline', '-25000')
+
+def set_superscript(font):
+    font._element.set('baseline', '30000')
+
+def set_strikethrough(font):
+    font._element.set('strike','sngStrike')
+
 
 def get_text_width(text, font_size, font_name='Calibri'):
     # Create a PDF document
@@ -272,6 +290,7 @@ class VersContentTextBox(VersTextBox):
             vers_text_width = get_text_width(vers_text, vers_font_size, 'CalibriBd')
 
         if not new_slide:
+            #TODO: Make superscript!
             self.run.text += vers_text
 
         # To debug scaling:
@@ -382,24 +401,72 @@ class BibleBooks:
             for key, value in BibleBooks.BOOKS_DICT.items():
                 f.write(f"{key} : {value}\n")
 
+def get_vers_content(vers_place):
+    """ When vers_place gets here, it should follow the the convention: "Book #,##-##" """
+    #TODO: Add support for Book #,##-#,##? (Goes over to the next chapter)
+    if vers_place.count(",") > 1:
+        #TODO: handle this
+        print("ATTENTION: Vers extends a chapter")
+    data = vers_place.split(",")
+    root = data[0]
+    section = data[1]
+    section_bounds = section.split("-")
+    section_start = int(section_bounds[0].strip())
+    section_end = int(section_bounds[1].strip())
+
+    #vers_cont = []
+    vers_text = ""
+
+    # inclusive range!
+    for i in range(section_start,section_end+1):
+        place = root + ',' + str(i)
+
+        success = False
+        while(not success):
+            response = requests.get(f"https://szentiras.hu/api/ref/{place}/RÚF")
+
+            if not response:
+                print("Error: couldn't get Bible verses")
+                success = False
+                sleep(2)
+            else:
+                success = True
+        
+            sleep(0.5)
+
+        resp_text = response.json()['text']
+
+        #for i in range(len(vers_cont)):
+        #    if i != 0:
+        #        vers_text += str(i)
+        #    vers_text += vers_cont[i]
+
+        #vers_cont.append(resp_text)
+        if i != section_start:
+            vers_text += str(i)
+        vers_text += resp_text
+
+    return vers_text
+
 def create_bible_vers_slides(prs,vers_place):
     #TODO: request vers by vers so we can add vers numbers in the text
-    response = requests.get(f"https://szentiras.hu/api/ref/{vers_place}/RÚF")
+    vers_text = get_vers_content(vers_place)
+    #response = requests.get(f"https://szentiras.hu/api/ref/{vers_place}/RÚF")
     # Don't request too frequently from the API!
-    sleep(0.2)
+    #sleep(1)
     
-    if not response:
-        print("Error: couldn't get Bible verses")
-        quit()
+    #if not response:
+    #    print("Error: couldn't get Bible verses")
+    #    quit()
 
-    vers_cont = data = response.json()['text']
+    #vers_cont = response.json()['text']
 
     #vers_cont = 'Perferendis id voluptatem maxime. Vero debitis dolorem iste blanditiis ut accusamus consectetur omnis. Maiores quasi et rerum voluptate aperiam uti nisi nihil. Quos laborum hic nihil. Nihil perferendis id quia. Minima incidunt molestiae laboriosam ut unde odit quos dolores.…'
     
     # Use this to help find the scaling ratio
     #vers_cont = 'a'*44 + ' ' * 2
 
-    BibleVersSlide(prs,vers_place,vers_cont)
+    BibleVersSlide(prs,vers_place,vers_text)
 
 def add_song_slides(prs,song_list):
     for song in song_list:
