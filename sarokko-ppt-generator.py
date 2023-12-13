@@ -20,6 +20,8 @@ import requests
 from time import sleep
 
 """TODO list:
+* Bible verses in this format are not supported yet: Ézs 3,5
+* If the Bible vers doesn't exist, you get into an infinite loop...
 * Handle various forms of the input of Bible vers locations
 * After that, do pretty formatting
 * Make a simple GUI interface
@@ -558,7 +560,7 @@ if __name__ == "__main__":
     ##### USER INPUTS #######
     # Songs before Bible vers
     pre_bv_song_list = ['Teremtsd bennem tiszta szívet', 'Teremtsd bennem tiszta szívet']
-    vers_place_list = ["Tit 3,3-7"]
+    vers_place_list = ["Ézs 27,3-4"]
     # Songs after Bible vers
     post_bv_song_list = ['Teremtsd bennem tiszta szívet']
     # Post teaching songs (like for communion)
