@@ -434,7 +434,7 @@ class BibleVersSlide(BlankSlide):
 
 def get_bible_books():
     # Get the names into a dict, so we can use it on the ppts
-    response = requests.get("https://szentiras.hu/api/books/RÚF")
+    response = requests.get("https://regi.szentiras.hu/api/books/RÚF")
     # Don't request too frequently from the API!
     sleep(0.5)
 
