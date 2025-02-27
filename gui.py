@@ -1,5 +1,7 @@
 import PySimpleGUI as sg
 
+import gui_tools
+
 sg.theme('DarkAmber')
 
 # Code is from PySimpleGUI.org, with modifications
@@ -17,12 +19,48 @@ def collapse(layout, key, visible=True):
     return sg.pin(sg.Column(layout, key=key, visible=visible))
 
 def create_input_column(key,count):
-    return [[sg.Input(key=(key,count))]]
+    return [[sg.Input(key=(key,count),enable_events=True, size=(45,1))]]
+
+def get_suggestions(text,options):
+    """Returns up to 4 matching options from the list."""
+    return [opt for opt in options if text.lower() in opt.lower()][:4]
+
+def get_uniq_chars(event):
+    if type(event) is tuple:
+        return event[0].strip('-')[-2:]
+    else:
+        return event.strip('-')[-2:]
+
+def update_suggestions(event):
+    user_input = values[event]
+    matches = get_suggestions(user_input, songs)
+    
+    uniq_chars = get_uniq_chars(event)
+
+    if matches:
+        window[f'-SUGG{uniq_chars}-'].update(values=matches, visible=True)
+        #window.TKroot.geometry("")  # Reset window size to fit contents
+        #window.refresh()  # Force window to reflow elements properly
+    else:
+        window[f'-SUGG{uniq_chars}-'].update(values=[], visible=False)
+        #window.TKroot.geometry("")  # Reset window size to fit contents
+        #window['-SUGGESTIONS-'].hide_row()  # Hide the empty space
+
+def select_suggestion(event,key):
+    uniq_chars = get_uniq_chars(event)
+
+    selected = values[event][0]
+    window[(f'-INP{uniq_chars}-',key)].update(selected)
+    window[event].update(values=[], visible=False)
+    #window.TKroot.geometry("")  # Reset window size to fit contents
+    #window['-SUGGESTIONS-'].hide_row()  # Hide the empty space
+
+songs = gui_tools.get_songs_list()
     
 adv_options = [[sg.Text("Szöveg skálázási faktora")],
                [sg.Input("98")]]
 
-ie_column = [[sg.Input(key=('-INPIE-',0)), sg.Button('+1', k='-BTNIE-')]]
+ie_column = [[sg.Input(key=('-INPIE-',0),enable_events=True, size=(45,1)), sg.Button('+1', k='-BTNIE-')]]
 ig_column = [[sg.Input(key=('-INPIG-',0)), sg.Button('+1', k='-BTNIG-')]]
 iu_column = [[sg.Input(key=('-INPIU-',0)), sg.Button('+1', k='-BTNIU-')]]
 tu_column = [[sg.Input(key=('-INPTU-',0)), sg.Button('+1', k='-BTNTU-')]]
@@ -30,7 +68,9 @@ tu_column = [[sg.Input(key=('-INPTU-',0)), sg.Button('+1', k='-BTNTU-')]]
 layout = [[sg.Text('Előző prezentáció')],
           [sg.Input(), sg.FileBrowse()],
           [sg.Text('Igevers előtti énekek')],
+          #[sg.Input(k='-IEPUT-', enable_events=True, size=(30,1))],
           [sg.Column(ie_column, k='-IECOL-')],
+          [sg.pin(sg.Listbox(values=[], key='-SUGGIE-', size=(45, 4), enable_events=True, no_scrollbar=True, visible=False))],
           [sg.Text('Énekek közti igeversek (formátum: Tit 3,4-7)')],
           [sg.Column(ig_column, k='-IGCOL-')],
           [sg.Text('Igevers utáni énekek')],
@@ -55,6 +95,7 @@ ig_num = 1
 iu_num = 1
 tu_num = 1
 
+key = 0
 while True:             # Event Loop
     event, values = window.read()
     # Hide advanced menu by default
@@ -62,29 +103,38 @@ while True:             # Event Loop
     if event == sg.WIN_CLOSED or event == 'Exit':
         break
 
-    if event.startswith('-OPEN ADV-'):
-        adv_opened = not adv_opened
-        window['-OPEN ADV-'].update(SYMBOL_DOWN if adv_opened else SYMBOL_UP)
-        window['-ADV-'].update(visible=adv_opened)
+    if type(event) is tuple:
+        key = event[1]
+        if event[0] == '-INPIE-':
+            update_suggestions(event)
 
-    if event == '-BTNIE-':
-        if ie_num < max_num:
-            ie_num += 1
-            window.extend_layout(window['-IECOL-'],create_input_column(event,ie_num))
+    else:
+        if event == '-SUGGIE-':
+            select_suggestion(event,key)
 
-    if event == '-BTNIG-':
-        if ig_num < max_num:
-            ig_num += 1
-            window.extend_layout(window['-IGCOL-'],create_input_column(event,ig_num))
+        if event.startswith('-OPEN ADV-'):
+            adv_opened = not adv_opened
+            window['-OPEN ADV-'].update(SYMBOL_DOWN if adv_opened else SYMBOL_UP)
+            window['-ADV-'].update(visible=adv_opened)
 
-    if event == '-BTNIU-':
-        if iu_num < max_num:
-            iu_num += 1
-            window.extend_layout(window['-IUCOL-'],create_input_column(event,iu_num))
+        elif event == '-BTNIE-':
+            if ie_num < max_num:
+                ie_num += 1
+                window.extend_layout(window['-IECOL-'],create_input_column('-INPIE-',ie_num-1))
 
-    if event == '-BTNTU-':
-        if tu_num < max_num:
-            tu_num += 1
-            window.extend_layout(window['-TUCOL-'],create_input_column(event,tu_num))
+        elif event == '-BTNIG-':
+            if ig_num < max_num:
+                ig_num += 1
+                window.extend_layout(window['-IGCOL-'],create_input_column(event,ig_num))
+
+        elif event == '-BTNIU-':
+            if iu_num < max_num:
+                iu_num += 1
+                window.extend_layout(window['-IUCOL-'],create_input_column(event,iu_num))
+
+        elif event == '-BTNTU-':
+            if tu_num < max_num:
+                tu_num += 1
+                window.extend_layout(window['-TUCOL-'],create_input_column(event,tu_num))
 
 window.close()
