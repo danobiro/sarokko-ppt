@@ -493,7 +493,7 @@ def get_vers_content(vers_place):
 
         success = False
         while(not success):
-            response = requests.get(f"https://szentiras.hu/api/ref/{place}/RÚF")
+            response = requests.get(f"https://regi.szentiras.hu/api/ref/{place}/RÚF")
 
             if not response:
                 print("Error: couldn't get Bible verses")
