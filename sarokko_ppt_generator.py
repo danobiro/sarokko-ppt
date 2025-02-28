@@ -27,6 +27,14 @@ from time import sleep
 * Find out the ratio between normal and superscript numbers
 """
 
+"""TODO:
+* Create a BibleVers class that contains its place and content
+* CRITICAL ERROR: non-range Bible verses (eg Róm 3,1) throw an error!
+* Implement ad end index into backend
+* Implement adv option both to gui and backend
+* Throw errors back: when presentation can't be opened, Bible vers doesn't exist etc.
+"""
+
 # Decorator to fix bg and text colors
 def copy_slide(copyFromPres, slideIndex,  pasteIntoPres):
     slide = Slide(SlideCopyFromPasteInto(copyFromPres, slideIndex,  pasteIntoPres))
@@ -556,8 +564,8 @@ def add_song_slides(prs,song_list):
             
 
 #if __name__ == "__main__":
-def run(input):
-    ##### USER INPUTS #######
+def run(in_data):
+    """##### USER INPUTS #######
     # Songs before Bible vers
     pre_bv_song_list = ['Teremtsd bennem tiszta szívet', 'Teremtsd bennem tiszta szívet']
     vers_place_list = ["Tit 3,3-7"]
@@ -572,8 +580,24 @@ def run(input):
 
     # Advanced user input
     scaling_factor = 0.98
-    BibleVersSlide.set_scaling_factor(scaling_factor)
+    BibleVersSlide.set_scaling_factor(scaling_factor) """
 
+    ##### USER INPUTS #######
+    # Songs before Bible vers
+    pre_bv_song_list = in_data['ie_songs']
+    vers_place_list = in_data['verses']
+    # Songs after Bible vers
+    post_bv_song_list = in_data['iu_songs']
+    # Post teaching songs (like for communion)
+    post_song_list = in_data['tu_songs']
+    # Old slide name
+    old_slide_name = in_data['prev_loc']
+    # Index of slide at which ads start in last slide
+    ad_start_ind = in_data['last_slide_start']
+
+    # Advanced user input
+    scaling_factor = 0.98
+    BibleVersSlide.set_scaling_factor(scaling_factor)
 
     # Load Calibri font
     rl_config.TTFSearchPath.append('./resources/calibri-font-family')
