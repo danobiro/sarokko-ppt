@@ -266,13 +266,13 @@ class VersPlaceTextBox(VersTextBox):
 class VersContentTextBox(VersTextBox):
     font_size = 32
 
-    def __init__(self,slide,left,top,width,height,vers_cont,prs):
+    def __init__(self,slide,left,top,width,height,vers_place,vers_cont,prs):
         super().__init__(slide,left,top,width,height)
         self.set_run_properties()
 
         self.max_lines = 4
 
-        self.set_multiline_text(vers_cont,prs)
+        self.set_multiline_text(vers_place,vers_cont,prs)
 
     def set_run_properties(self):
         self.set_font_size(VersContentTextBox.font_size)
@@ -313,7 +313,7 @@ class VersContentTextBox(VersTextBox):
     def add_text_superscript(self,text):
         pass
         
-    def set_multiline_text(self,vers_text,prs):
+    def set_multiline_text(self,vers_place,vers_text,prs):
         num_lines = 0
         
         #TODO: this line is dirty
@@ -346,6 +346,8 @@ class VersContentTextBox(VersTextBox):
                 #TODO: do smart formatting here, such as look back a few words whether we have some punctuation
                 # and then start next slide from there
                 
+
+                ####ERROR: vers_place doesn't exist here!
                 BibleVersSlide(prs,vers_place,vers_text)
                 
                 # To debug scaling
@@ -426,7 +428,7 @@ class BibleVersSlide(BlankSlide):
         height = Cm(11.31)
         width = Cm(24.86)
 
-        self.vers_cont_box = VersContentTextBox(self.slide,left,top,width,height,vers_cont,prs)
+        self.vers_cont_box = VersContentTextBox(self.slide,left,top,width,height,vers_place,vers_cont,prs)
 
     # static method
     def set_scaling_factor(factor):
@@ -542,7 +544,6 @@ def create_bible_vers_slides(prs,vers_place):
     
     # Use this to help find the scaling ratio
     #vers_cont = 'a'*44 + ' ' * 2
-
     BibleVersSlide(prs,vers_place,vers_text)
 
 def add_song_slides(prs,song_list):

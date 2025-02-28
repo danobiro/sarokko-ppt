@@ -217,6 +217,6 @@ while True:             # Event Loop
                 sg.Popup(error_msg , title='Hiba', keep_on_top=True)
 
             else:
-
+                sarokko_ppt_generator.run(rvals)
 
 window.close()
