@@ -166,7 +166,7 @@ while True:             # Event Loop
                 tu_num += 1
 
         elif event == 'Start':
-            passed_test = True
+            passed_tests = True
 
             rvals = {}
 
@@ -180,7 +180,7 @@ while True:             # Event Loop
             rvals['iu_songs'] = read_song_input(values,'-INPIU-',iu_num)
 
             # Get songs after teaching
-            rvals['tu_songs'] = read_song_input(values,'-INPTU-',ie_num)
+            rvals['tu_songs'] = read_song_input(values,'-INPTU-',tu_num)
 
             # Get Bible verses
             rvals['verses'] = []
@@ -200,12 +200,20 @@ while True:             # Event Loop
             try:
                 rvals['last_slide_start'] = int(values['-INPSLSTRT-'])
             except:
-                sg.Popup("Hiba: Az előző prezentáció kezdő sorszáma nem megfelelő" , title='Hiba', keep_on_top=True)
+                error_msg = "Hiba: Az előző prezentáció kezdő sorszáma nem megfelelő"
                 passed_tests = False
             try:
                 rvals['last_slide_end'] = int(values['-INPSLEND-'])
             except:
                 rvals['last_slide_end'] = -1
+
+            if passed_tests:
+                result = gui_tools.validate_input_data(rvals)
+                passed_tests = result[0]
+                error_msg = result[1]
+            
+            if not passed_tests:
+                sg.Popup(error_msg , title='Hiba', keep_on_top=True)
 
             print(rvals)
             
