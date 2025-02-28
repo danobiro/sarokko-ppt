@@ -61,22 +61,23 @@ adv_options = [[sg.Text("Szöveg skálázási faktora")],
                [sg.Input("98")]]
 
 ie_column = [[sg.Input(key=('-INPIE-',0),enable_events=True, size=(45,1)), sg.Button('+1', k='-BTNIE-')]]
-ig_column = [[sg.Input(key=('-INPIG-',0)), sg.Button('+1', k='-BTNIG-')]]
-iu_column = [[sg.Input(key=('-INPIU-',0)), sg.Button('+1', k='-BTNIU-')]]
-tu_column = [[sg.Input(key=('-INPTU-',0)), sg.Button('+1', k='-BTNTU-')]]
+ig_column = [[sg.Input(key=('-INPIG-',0),enable_events=True, size=(45,1)), sg.Button('+1', k='-BTNIG-')]]
+iu_column = [[sg.Input(key=('-INPIU-',0),enable_events=True, size=(45,1)), sg.Button('+1', k='-BTNIU-')]]
+tu_column = [[sg.Input(key=('-INPTU-',0),enable_events=True, size=(45,1)), sg.Button('+1', k='-BTNTU-')]]
 
 layout = [[sg.Text('Előző prezentáció')],
           [sg.Input(), sg.FileBrowse()],
           [sg.Text('Igevers előtti énekek')],
-          #[sg.Input(k='-IEPUT-', enable_events=True, size=(30,1))],
           [sg.Column(ie_column, k='-IECOL-')],
           [sg.pin(sg.Listbox(values=[], key='-SUGGIE-', size=(45, 4), enable_events=True, no_scrollbar=True, visible=False))],
           [sg.Text('Énekek közti igeversek (formátum: Tit 3,4-7)')],
           [sg.Column(ig_column, k='-IGCOL-')],
           [sg.Text('Igevers utáni énekek')],
           [sg.Column(iu_column, k='-IUCOL-')],
+          [sg.pin(sg.Listbox(values=[], key='-SUGGIU-', size=(45, 4), enable_events=True, no_scrollbar=True, visible=False))],
           [sg.Text('Tanítás utáni énekek (pl Úrvacsorakor)')],
           [sg.Column(tu_column, k='-TUCOL-')],
+          [sg.pin(sg.Listbox(values=[], key='-SUGGTU-', size=(45, 4), enable_events=True, no_scrollbar=True, visible=False))],
           [sg.Text('Előző prezentációban az első hírdetéses slide sorszáma')],
           [sg.Input(key='-INPSL-')],
           ### Haladó beállítások
@@ -105,11 +106,12 @@ while True:             # Event Loop
 
     if type(event) is tuple:
         key = event[1]
-        if event[0] == '-INPIE-':
-            update_suggestions(event)
+        #if event[0] == '-INPIE-':
+        update_suggestions(event)
 
     else:
-        if event == '-SUGGIE-':
+        #if event == '-SUGGIE-':
+        if '-SUGG' in event:
             select_suggestion(event,key)
 
         if event.startswith('-OPEN ADV-'):
@@ -123,18 +125,19 @@ while True:             # Event Loop
                 window.extend_layout(window['-IECOL-'],create_input_column('-INPIE-',ie_num-1))
 
         elif event == '-BTNIG-':
-            if ig_num < max_num:
-                ig_num += 1
-                window.extend_layout(window['-IGCOL-'],create_input_column(event,ig_num))
+            pass
+            #if ig_num < max_num:
+            #    ig_num += 1
+            #    window.extend_layout(window['-IGCOL-'],create_input_column('-INPIG-',ig_num-1))
 
         elif event == '-BTNIU-':
             if iu_num < max_num:
                 iu_num += 1
-                window.extend_layout(window['-IUCOL-'],create_input_column(event,iu_num))
+                window.extend_layout(window['-IUCOL-'],create_input_column('-INPIU-',iu_num-1))
 
         elif event == '-BTNTU-':
             if tu_num < max_num:
                 tu_num += 1
-                window.extend_layout(window['-TUCOL-'],create_input_column(event,tu_num))
+                window.extend_layout(window['-TUCOL-'],create_input_column('-INPTU-',tu_num-1))
 
 window.close()
