@@ -18,8 +18,12 @@ def collapse(layout, key, visible=True):
     """
     return sg.pin(sg.Column(layout, key=key, visible=visible))
 
-def create_input_column(key,count):
-    return [[sg.Input(key=(key,count),enable_events=True, size=(45,1))]]
+def create_input_column(key,count,length=45):
+    return [[sg.Input(key=(key,count),enable_events=True, size=(length,1))]]
+
+def create_ig_column():
+    return [[sg.Input(key=('-INPIGE-',i),enable_events=True, size=(10,1),visible=False) for i in range(4)]]
+
 
 def get_suggestions(text,options):
     """Returns up to 4 matching options from the list."""
@@ -55,18 +59,32 @@ def select_suggestion(event,key):
     #window.TKroot.geometry("")  # Reset window size to fit contents
     #window['-SUGGESTIONS-'].hide_row()  # Hide the empty space
 
+def read_song_input(vals,event_key,row_num=5):
+    r_list = []
+
+    for i in range(row_num):
+        curr_song = vals[(event_key,i)]
+        if curr_song:
+            r_list.append(curr_song)
+
+    return r_list
+    
 songs = gui_tools.get_songs_list()
     
 adv_options = [[sg.Text("Szöveg skálázási faktora")],
                [sg.Input("98")]]
 
 ie_column = [[sg.Input(key=('-INPIE-',0),enable_events=True, size=(45,1)), sg.Button('+1', k='-BTNIE-')]]
-ig_column = [[sg.Input(key=('-INPIG-',0),enable_events=True, size=(45,1)), sg.Button('+1', k='-BTNIG-')]]
+
+ig_list = [sg.Input(key=('-INPIG-',i),enable_events=True, size=(10,1)) for i in range(4)] 
+ig_list.append(sg.Button('+1', k='-BTNIG-'))
+ig_column = [[sg.Column([ig_list])]]
+
 iu_column = [[sg.Input(key=('-INPIU-',0),enable_events=True, size=(45,1)), sg.Button('+1', k='-BTNIU-')]]
 tu_column = [[sg.Input(key=('-INPTU-',0),enable_events=True, size=(45,1)), sg.Button('+1', k='-BTNTU-')]]
 
 layout = [[sg.Text('Előző prezentáció')],
-          [sg.Input(), sg.FileBrowse()],
+          [sg.Input(k='-INPLOC-'), sg.FileBrowse()],
           [sg.Text('Igevers előtti énekek')],
           [sg.Column(ie_column, k='-IECOL-')],
           [sg.pin(sg.Listbox(values=[], key='-SUGGIE-', size=(45, 4), enable_events=True, no_scrollbar=True, visible=False))],
@@ -79,7 +97,7 @@ layout = [[sg.Text('Előző prezentáció')],
           [sg.Column(tu_column, k='-TUCOL-')],
           [sg.pin(sg.Listbox(values=[], key='-SUGGTU-', size=(45, 4), enable_events=True, no_scrollbar=True, visible=False))],
           [sg.Text('Előző prezentációban az első hírdetéses slide sorszáma')],
-          [sg.Input(key='-INPSL-')],
+          [sg.Input(key='-INPSLSTRT-',size=(4,1)), sg.Text('És az utolsóé:'), sg.Input(key='-INPSLEND-', size=(4,1))],
           ### Haladó beállítások
           [sg.T(SYMBOL_UP, enable_events=True, k='-OPEN ADV-'), sg.T('Haladó beállítások', enable_events=True, k='-OPEN ADV-TEXT')],
           [collapse(adv_options, '-ADV-',visible=False)],
@@ -92,9 +110,9 @@ adv_opened = False
 
 max_num = 5
 ie_num = 1
-ig_num = 1
 iu_num = 1
 tu_num = 1
+ig_num = 0
 
 key = 0
 while True:             # Event Loop
@@ -107,7 +125,8 @@ while True:             # Event Loop
     if type(event) is tuple:
         key = event[1]
         #if event[0] == '-INPIE-':
-        update_suggestions(event)
+        if '-INPIG' not in event[0]:
+            update_suggestions(event)
 
     else:
         #if event == '-SUGGIE-':
@@ -121,23 +140,77 @@ while True:             # Event Loop
 
         elif event == '-BTNIE-':
             if ie_num < max_num:
+                window.extend_layout(window['-IECOL-'],create_input_column('-INPIE-',ie_num))
                 ie_num += 1
-                window.extend_layout(window['-IECOL-'],create_input_column('-INPIE-',ie_num-1))
 
         elif event == '-BTNIG-':
-            pass
-            #if ig_num < max_num:
-            #    ig_num += 1
-            #    window.extend_layout(window['-IGCOL-'],create_input_column('-INPIG-',ig_num-1))
+            max_num_ig = 4
+            if ig_num < max_num_ig:
+                ig_num += 1
+
+                #if ig_num == 2:
+                    # extended fields
+                    #window.extend_layout(window['-IGCOL-'],create_input_column('-INPIGE-',ig_num-2,length=10))
+                window.extend_layout(window['-IGCOL-'],create_ig_column())
+                window[('-INPIGE-',ig_num-1)].update(visible=True)
+
 
         elif event == '-BTNIU-':
             if iu_num < max_num:
+                window.extend_layout(window['-IUCOL-'],create_input_column('-INPIU-',iu_num))
                 iu_num += 1
-                window.extend_layout(window['-IUCOL-'],create_input_column('-INPIU-',iu_num-1))
 
         elif event == '-BTNTU-':
             if tu_num < max_num:
+                window.extend_layout(window['-TUCOL-'],create_input_column('-INPTU-',tu_num))
                 tu_num += 1
-                window.extend_layout(window['-TUCOL-'],create_input_column('-INPTU-',tu_num-1))
+
+        elif event == 'Start':
+            passed_test = True
+
+            rvals = {}
+
+            # Get previous slides location
+            rvals['prev_loc'] = values['-INPLOC-']
+
+            # Get songs before Bible verses
+            rvals['ie_songs'] = read_song_input(values,'-INPIE-',ie_num)
+
+            # Get songs after BV
+            rvals['iu_songs'] = read_song_input(values,'-INPIU-',iu_num)
+
+            # Get songs after teaching
+            rvals['tu_songs'] = read_song_input(values,'-INPTU-',ie_num)
+
+            # Get Bible verses
+            rvals['verses'] = []
+            for i in range(4):
+                curr_str = values[('-INPIG-',i)]
+                if curr_str:
+                    rvals['verses'].append(curr_str)
+            for i in range(4):
+                try:
+                    curr_str = values[('-INPIGE-',i)]
+                    if curr_str:
+                        rvals['verses'].append(curr_str)
+                except:
+                    pass
+
+            # Get previous slide details
+            try:
+                rvals['last_slide_start'] = int(values['-INPSLSTRT-'])
+            except:
+                sg.Popup("Hiba: Az előző prezentáció kezdő sorszáma nem megfelelő" , title='Hiba', keep_on_top=True)
+                passed_tests = False
+            try:
+                rvals['last_slide_end'] = int(values['-INPSLEND-'])
+            except:
+                rvals['last_slide_end'] = -1
+
+            print(rvals)
+            
+            # Now we need to validate the inputs
+            # And if they pass the tests, call backend
+            # if not, the loop continues like the button wasn't pressed.
 
 window.close()
