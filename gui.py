@@ -1,6 +1,7 @@
 import PySimpleGUI as sg
 
 import gui_tools
+import sarokko_ppt_generator
 
 sg.theme('DarkAmber')
 
@@ -215,10 +216,7 @@ while True:             # Event Loop
             if not passed_tests:
                 sg.Popup(error_msg , title='Hiba', keep_on_top=True)
 
-            print(rvals)
-            
-            # Now we need to validate the inputs
-            # And if they pass the tests, call backend
-            # if not, the loop continues like the button wasn't pressed.
+            else:
+
 
 window.close()

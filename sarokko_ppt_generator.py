@@ -554,7 +554,8 @@ def add_song_slides(prs,song_list):
             copy_slide(song_prs, i,  prs)
             
 
-if __name__ == "__main__":
+#if __name__ == "__main__":
+def run(input):
     ##### USER INPUTS #######
     # Songs before Bible vers
     pre_bv_song_list = ['Teremtsd bennem tiszta szívet', 'Teremtsd bennem tiszta szívet']

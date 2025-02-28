@@ -28,4 +28,6 @@ def validate_input_data(data):
         if song not in songs:
             return [False, f"Hiba: A tanítás utáni {i+1}. számhoz nincs dia!"]
 
+    # rest is more conviniently validated at run
+
     return [True,""]
